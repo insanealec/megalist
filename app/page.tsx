@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { SetStateAction, useState } from "react"
+
+type ListFunc = (value: SetStateAction<string[]>) => void;
 
 export default function Home() {
   const [ready, setReady] = useState([] as string[]);
@@ -17,16 +19,9 @@ export default function Home() {
     setTerm('');
   }
 
-  const completeReady = (item: string, index: number) => {
-    setComplete(old => [...old, item]);
-    setReady(old => {
-      return old.filter((_, i) => i !== index);
-    });
-  }
-
-  const decomplete = (item: string, index: number) => {
-    setReady(old => [...old, item]);
-    setComplete(old => {
+  const toggleItem = (addFunc: ListFunc, remFunc: ListFunc, item: string, index: number) => {
+    addFunc(old => [...old, item]);
+    remFunc(old => {
       return old.filter((_, i) => i !== index);
     });
   }
@@ -45,7 +40,7 @@ export default function Home() {
           <h3 className="w-full">List</h3>
           <div className="w-full flex flex-col">{ready.map((item, index) => 
             <label key={index}>
-              <input type="checkbox" checked={false} name={item} id={`${item}-${index}`} onChange={() => completeReady(item, index)} />
+              <input type="checkbox" checked={false} name={item} id={`${item}-${index}`} onChange={() => toggleItem(setComplete, setReady, item, index)} />
               {item}
             </label>
           )}
@@ -55,7 +50,7 @@ export default function Home() {
           <h3 className="w-full">Complete</h3>
           <div className="w-full flex flex-col">{complete.map((item, index) => 
             <label key={index}>
-              <input type="checkbox" checked={true} name={item} id={`${item}-${index}`} onChange={() => decomplete(item, index)} />
+              <input type="checkbox" checked={true} name={item} id={`${item}-${index}`} onChange={() => toggleItem(setReady, setComplete, item, index)} />
               {item}
             </label>
           )}
