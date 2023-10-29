@@ -19,6 +19,13 @@ export default function Home() {
     setTerm('');
   }
 
+  /**
+   * Move item into one list, and out of another.
+   * @param addFunc React set state function to add the item to
+   * @param remFunc Set state function to remove the item from
+   * @param item Item in list
+   * @param index Index to splice
+   */
   const toggleItem = (addFunc: ListFunc, remFunc: ListFunc, item: string, index: number) => {
     addFunc(old => [...old, item]);
     remFunc(old => {
