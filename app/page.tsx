@@ -1,12 +1,29 @@
 "use client"
 
+import { UUID } from "crypto";
 import { SetStateAction, useState } from "react"
 
-type ListFunc = (value: SetStateAction<string[]>) => void;
+interface Item {
+  id: UUID;
+  name: string;
+  category: UUID;
+  isAssumedCategory: boolean;
+}
+
+interface Category {
+  id: UUID;
+  name: string;
+}
+const DEFAULT_CATEGORY: Category = {
+  id: '0000-0000-0000-0000-0000',
+  name: 'Unknown',
+}
+
+type ListFunc = (value: SetStateAction<Item[]>) => void;
 
 export default function Home() {
-  const [ready, setReady] = useState([] as string[]);
-  const [complete, setComplete] = useState([] as string[]);
+  const [ready, setReady] = useState([] as Item[]);
+  const [complete, setComplete] = useState([] as Item[]);
   const [term, setTerm] = useState('');
 
   const handleChange = (e: any) => {
@@ -15,7 +32,16 @@ export default function Home() {
 
   const addToReady = (e: any) => {
     e.preventDefault();
-    setReady(old => [...old, term]);
+    // TODO: check if Item term already exists
+    // Could assume Name to be unique? Or force it to be?
+    const item: Item = {
+      id: crypto.randomUUID() as UUID,
+      name: term,
+      // TODO: analyze term and try to match to category
+      category: DEFAULT_CATEGORY.id,
+      isAssumedCategory: true,
+    };
+    setReady(old => [...old, item]);
     setTerm('');
   }
 
@@ -26,7 +52,7 @@ export default function Home() {
    * @param item Item in list
    * @param index Index to splice
    */
-  const toggleItem = (addFunc: ListFunc, remFunc: ListFunc, item: string, index: number) => {
+  const toggleItem = (addFunc: ListFunc, remFunc: ListFunc, item: Item, index: number) => {
     addFunc(old => [...old, item]);
     remFunc(old => {
       return old.filter((_, i) => i !== index);
@@ -47,8 +73,8 @@ export default function Home() {
           <h3 className="w-full">List</h3>
           <div className="w-full flex flex-col">{ready.map((item, index) => 
             <label key={index}>
-              <input type="checkbox" checked={false} name={item} id={`${item}-${index}`} onChange={() => toggleItem(setComplete, setReady, item, index)} />
-              {item}
+              <input type="checkbox" checked={false} name={item.name} id={item.id} onChange={() => toggleItem(setComplete, setReady, item, index)} />
+              {item.name}
             </label>
           )}
           </div>
@@ -57,8 +83,8 @@ export default function Home() {
           <h3 className="w-full">Complete</h3>
           <div className="w-full flex flex-col">{complete.map((item, index) => 
             <label key={index}>
-              <input type="checkbox" checked={true} name={item} id={`${item}-${index}`} onChange={() => toggleItem(setReady, setComplete, item, index)} />
-              {item}
+              <input type="checkbox" checked={true} name={item.name} id={item.id} onChange={() => toggleItem(setReady, setComplete, item, index)} />
+              {item.name}
             </label>
           )}
           </div>
