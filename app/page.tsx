@@ -9,10 +9,20 @@ interface Item {
   category: UUID;
   isAssumedCategory: boolean;
 }
+interface ItemList {
+  [id: UUID]: Item;
+}
+interface TermList {
+  [name: string]: UUID;
+}
 
 interface Category {
   id: UUID;
   name: string;
+}
+// TODO: something
+interface CategoryList {
+  [id: UUID]: Category;
 }
 const DEFAULT_CATEGORY: Category = {
   id: '0000-0000-0000-0000-0000',
@@ -24,7 +34,9 @@ type ListFunc = (value: SetStateAction<Item[]>) => void;
 export default function Home() {
   const [ready, setReady] = useState([] as Item[]);
   const [complete, setComplete] = useState([] as Item[]);
+  const [itemList, setItemList] = useState({} as ItemList);
   const [term, setTerm] = useState('');
+  const [termList, setTermList] = useState({} as TermList);
 
   const handleChange = (e: any) => {
     setTerm(e.target.value);
@@ -32,15 +44,21 @@ export default function Home() {
 
   const addToReady = (e: any) => {
     e.preventDefault();
-    // TODO: check if Item term already exists
-    // Could assume Name to be unique? Or force it to be?
-    const item: Item = {
-      id: crypto.randomUUID() as UUID,
-      name: term,
-      // TODO: analyze term and try to match to category
-      category: DEFAULT_CATEGORY.id,
-      isAssumedCategory: true,
-    };
+    // Check if Item term already exists
+    let item: Item;
+    if (termList[term]) {
+      item = itemList[termList[term]];
+    } else {
+      item = {
+        id: crypto.randomUUID() as UUID,
+        name: term,
+        // TODO: analyze term and try to match to category
+        category: DEFAULT_CATEGORY.id,
+        isAssumedCategory: true,
+      };
+      setItemList({ ...itemList, [item.id]: item });
+      setTermList({ ...termList, [term]: item.id });
+    }
     setReady(old => [...old, item]);
     setTerm('');
   }
@@ -64,7 +82,11 @@ export default function Home() {
       <div className="flex flex-col w-full">
         <h2 className="w-full">Megalist</h2>
         <form className="flex justify-between" onSubmit={addToReady}>
-          <input type="text" className="text-black" value={term} onChange={handleChange} />
+          <input type="text" list="terms" name="term" className="text-black" value={term} onChange={handleChange} />
+          <datalist id="terms">{Object.keys(termList).map((t, i) => 
+            <option key={i} value={t}>{t}</option>
+          )}
+          </datalist>
           <input type="submit" value="Submit" />
         </form>
       </div>
